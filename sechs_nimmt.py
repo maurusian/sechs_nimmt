@@ -1,24 +1,41 @@
 """
+# Description
 
+6 Nimmt is a German game invented in 1994. This program is a simulation of that game. The simulation is run N number of times to determine the best strategy among a combination of strategies.
+
+So far, only simple strategies were simulated, namely RND (the player chooses a random card), LARG (the player always chooses the largest card), SMA (the player always chooses the smallest card).
+
+
+# Results
+Even with these simple strategies, the chance of winning is not always straightforward to deduce. With only 2 players, it looks like a random strategy is the best of the three. With 3 or more players, it seems that LARG often takes the upper hand, provided another player is also playing LARG, thus the strategies reinforce each other. Otherwise, SMA takes the upper hand. Not all possible number of players and combinations have been simulated.
+
+# Future development
+It is not my intention to recreate the game for the purpose of playing, an endeavor that would require building a GUI, and potentially hosting the game app on a server. Someone has already beat me to it anyway. Instead, I am merely interested in different strategies and how they fair against each other. I would be also interested to learn about the underlying mathematics that could explain the results.
+
+Next, I will be working on simulating more elaborate strategies that are closer to how real players would approach the game.
 """
 
 from random import randint
 import sys
 
 #Constants
+MAX_VALUE = 104 #maximum value of a card
 
-MAX_VALUE = 104
+MAX_PLAYERS = 10 #maximum number of players
 
-MAX_PLAYERS = 10
+GAME_LENGTH = 10 #maximum number of cards each player gets, which determines the length of the game (one card is played per round)
 
-GAME_LENGTH = 10
+STACK_NUM = 4 #number of cards in the middle stack
 
-STACK_NUM = 4
-
-STRATS = ['SMA','LARG','CL_SMA','SMA_LARG','LARG_SMA','RND','PNT_LARG']
+STRATS = ['SMA','LARG','CL_SMA','SMA_LARG','LARG_SMA','RND','PNT_LARG'] #list of strategies
 
 
 def get_player_card(stack,player_k_cards,strategy):
+    """
+    Returns a card from a player's deck, based on his strategy,
+    and what is available in the stack (if the strategy takes
+    the stack into consideration).
+    """
     if strategy == 'SMA':
         
         card = min(player_k_cards)
@@ -55,6 +72,13 @@ def get_player_card(stack,player_k_cards,strategy):
     return card
 
 def get_stack_index(stack,card):
+    """
+    Get the placement index on the stack
+    where the next card has to be added.
+
+    Returns None if no such placement is
+    found.
+    """
     min_diff = 200
     stack_index = -1
     for i in range(len(stack)):
@@ -70,6 +94,9 @@ def get_stack_index(stack,card):
     return stack_index
 
 def get_point_sum(cards,card_list):
+    """
+    Returns the sum of the points in a card list.
+    """
     point_sum = 0
     for card in card_list:
         point_sum += cards[card]
@@ -77,6 +104,10 @@ def get_point_sum(cards,card_list):
     return point_sum
 
 def get_lowest_point_stack(cards,stack):
+    """
+    Returns the placement index on the stack
+    where the sum of points is the lowest.
+    """
     lowest_points = 100
     lowest_point_index = -1
     for i in range(len(stack)):
@@ -92,7 +123,9 @@ def get_lowest_point_stack(cards,stack):
     return lowest_point_index
 
 def stack_print(stack):
-
+    """
+    Prints the stack in a proper way.
+    """
     for sta in stack:
         for card in sta:
             print(str(card).ljust(5,' '),end="")
@@ -100,6 +133,11 @@ def stack_print(stack):
     
 #create the game
 def create_game():
+    """
+    Returns a MAX_VALUE number of cards each with points
+    ranging between 1 and 5, with different proportions
+    The points for each specific card are chosen randomly.
+    """
     cards = {}
     for i in range(1,MAX_VALUE+1):
         rnd = randint(1,800)
@@ -132,6 +170,10 @@ def create_game():
 
 #choose number of players and strategies
 def game_mode(cards):
+    """
+    Returns user entered number of players and list of
+    strategies.
+    """
     player_num = 0
     while player_num == 0 or player_num > MAX_PLAYERS:
         player_num  = int(input("Number of players: "))
@@ -141,6 +183,12 @@ def game_mode(cards):
     return player_num, strategies
 
 def initialize_game(player_num, strategies):
+    """
+    Initializes the game by creating and returning
+    the card deck for each player, the middle stack, and
+    an empty list that would contain the losing cards
+    accumulated by each player.
+    """
     #distribute cards on each player
     chosen_card_set = set()
     player_cards = {}
@@ -187,6 +235,11 @@ def initialize_game(player_num, strategies):
 
 #play each round
 def play_round(round_play, stack, player_losing_cards):
+    """
+    Returns the new state of the stack and the list of
+    player losing cards, using the list of cards chosen
+    by the players.
+    """
     for i in range(len(round_play)):
         placement_index = get_stack_index(stack,round_play[i][1])
         #print("Player "+str(round_play[i][0])+" playing card "+str(round_play[i][1]))
@@ -215,6 +268,10 @@ def play_round(round_play, stack, player_losing_cards):
 
 #play all rounds
 def run(stack, player_cards, strategies, player_losing_cards):
+    """
+    Main function. Runs the game loop, and returns the final state
+    of the game.
+    """
     for r in range(GAME_LENGTH):
         round_play = []
 
